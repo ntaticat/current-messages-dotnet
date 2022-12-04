@@ -13,6 +13,7 @@ public class CreateChatMessageCommand
         public string MessageText { get; set; }
         public Guid UserId { get; set; }
         public Guid ChatOwnerId { get; set; }
+        public bool SetAsCurrentMessage { get; set; }
     }
 
     public class Handler : IRequestHandler<ChatMessageInfoCommand>
@@ -38,15 +39,37 @@ public class CreateChatMessageCommand
 
             await _context.ChatMessages.AddAsync(chatMessage);
 
-            var result = await _context.SaveChangesAsync();
-            
-            if (result > 0)
+            var chatMessageResult = await _context.SaveChangesAsync();
+
+            if (chatMessageResult <= 0)
             {
-                await _chatHub.Clients.All.SendAsync("SendNewChatMessage", chatMessage);
+                throw new Exception("No se pudo crear el chatmessage");
+            }
+            
+            await _chatHub.Clients.All.SendAsync("SendNewChatMessage", chatMessage);
+            
+            if (!request.SetAsCurrentMessage)
+            {
+                return Unit.Value;
+            }
+
+            var currentMessage = new CurrentMessage
+            {
+                CurrentMessageId = chatMessage.ChatMessageId,
+                UserId = chatMessage.UserId,
+                MessageText = chatMessage.MessageText
+            };
+            
+            await _context.CurrentMessages.AddAsync(currentMessage);
+            
+            var currentMessageResult = await _context.SaveChangesAsync();
+
+            if (currentMessageResult > 0)
+            {
                 return Unit.Value;
             }
             
-            throw new Exception("No se pudo crear el chatmessage");
+            throw new Exception("No se pudo registrar el chatmessage como currentmessage");
         }
     }
 }

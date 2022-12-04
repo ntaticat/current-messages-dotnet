@@ -18,9 +18,9 @@ public class ChatsController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<List<Chat>>> GetChats()
+    public async Task<ActionResult<List<Chat>>> GetChats(Guid? user = null)
     {
-        return await _mediator.Send(new GetChatsQuery.ChatsQuery());
+        return await _mediator.Send(new GetChatsQuery.ChatsQuery { UserId = user });
     }
 
     [HttpGet("{id}")]
