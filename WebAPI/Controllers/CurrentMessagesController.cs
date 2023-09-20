@@ -18,9 +18,9 @@ public class CurrentMessagesController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<ActionResult<List<CurrentMessage>>> GetCurrentMessages()
+    public async Task<ActionResult<List<CurrentMessage>>> GetCurrentMessages(string? userId = "")
     {
-        return await _mediator.Send(new GetCurrentMessagesQuery.CurrentMessagesQuery());
+        return await _mediator.Send(new GetCurrentMessagesQuery.CurrentMessagesQuery {UserId = userId});
     }
     
     [HttpPost]
