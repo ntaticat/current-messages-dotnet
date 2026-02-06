@@ -1,0 +1,32 @@
+services:
+  webapi:
+    build: .
+    container_name: current-messages-net
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: >
+        Server=db;
+        Database=dbCurrentMessagesNet;
+        User Id=sa;
+        Password=${SQLSERVER_PASSWORD};
+        TrustServerCertificate=True
+
+  db:
+    user: '0:0'
+    image: mcr.microsoft.com/mssql/server:2019-CU14-ubuntu-20.04
+    container_name: sqlserver2019
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: ${SQLSERVER_PASSWORD}
+      MSSQL_PID: Express
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+volumes:
+  sqlserver-data:
