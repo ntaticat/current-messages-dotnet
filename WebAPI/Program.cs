@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
-using Application.Hubs;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
+using WebAPI.Hubs;
 
 const string allowClientPolicy = "_allow_frontend_angular";
 
@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().AddJsonOptions(opt =>
     opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -18,7 +19,9 @@ builder.Services.AddDbContext<CurrentMessagesNetContext>(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )     
 );
+
 builder.Services.AddSignalR();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: allowClientPolicy, policy =>
@@ -38,12 +41,27 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
-builder.Services.AddMediatR(typeof(Application.Commands.CreateChatCommand.Handler));
 
+builder.Services.AddMediatR(typeof(Application.Commands.CreateChatCommand.Handler));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<CurrentMessagesNetContext>();
+        db.Database.Migrate();
+    }
+    catch (System.Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Database migration failed");
+        throw;
+    }
+    
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -57,8 +75,9 @@ if (app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 
 app.UseAuthorization();
-app.MapControllers();
 app.UseCors(allowClientPolicy);
-app.MapHub<ChatHub>("/chatHub");
+
+app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

@@ -1,4 +1,4 @@
-using Application.Hubs;
+using Application.Notifications;
 using Domain.Models;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
@@ -13,18 +13,17 @@ public class CreateChatMessageCommand
         public string MessageText { get; set; }
         public Guid UserId { get; set; }
         public Guid ChatOwnerId { get; set; }
-        public bool SetAsCurrentMessage { get; set; }
     }
 
     public class Handler : IRequestHandler<ChatMessageInfoCommand>
     {
         private readonly CurrentMessagesNetContext _context;
-        private readonly IHubContext<ChatHub> _chatHub;
+        private readonly IMediator _mediator;
 
-        public Handler(CurrentMessagesNetContext context, IHubContext<ChatHub> chatHub)
+        public Handler(CurrentMessagesNetContext context, IMediator mediator)
         {
             _context = context;
-            _chatHub = chatHub;
+            _mediator = mediator;
         }
         
         public async Task<Unit> Handle(ChatMessageInfoCommand request, CancellationToken cancellationToken)
@@ -46,30 +45,19 @@ public class CreateChatMessageCommand
                 throw new Exception("No se pudo crear el chatmessage");
             }
             
-            await _chatHub.Clients.All.SendAsync("SendNewChatMessage", chatMessage);
+            await _mediator.Publish(
+                new CreateChatMessageNotification
+                {
+                    ChatOwnerId = request.ChatOwnerId,
+                    UserId = request.UserId,
+                    MessageText = request.MessageText,
+                    SentDate = DateTime.UtcNow,
+                    ChatMessageId = chatMessage.ChatMessageId,
+                }, 
+                cancellationToken
+            );
             
-            if (!request.SetAsCurrentMessage)
-            {
-                return Unit.Value;
-            }
-
-            var currentMessage = new CurrentMessage
-            {
-                CurrentMessageId = chatMessage.ChatMessageId,
-                UserId = chatMessage.UserId,
-                MessageText = chatMessage.MessageText
-            };
-            
-            await _context.CurrentMessages.AddAsync(currentMessage);
-            
-            var currentMessageResult = await _context.SaveChangesAsync();
-
-            if (currentMessageResult > 0)
-            {
-                return Unit.Value;
-            }
-            
-            throw new Exception("No se pudo registrar el chatmessage como currentmessage");
+            return Unit.Value;
         }
     }
 }
