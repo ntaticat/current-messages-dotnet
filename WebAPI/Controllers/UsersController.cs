@@ -1,4 +1,5 @@
 using Application.Commands;
+using Application.Commands.User;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,11 +14,5 @@ public class UsersController : ControllerBase
     public UsersController(IMediator mediator)
     {
         _mediator = mediator;
-    }
-    
-    [HttpPost]
-    public async Task<ActionResult<Unit>> PostUser([FromBody] CreateUserCommand.UserInfoCommand data)
-    {
-        return await _mediator.Send(data);
     }
 }

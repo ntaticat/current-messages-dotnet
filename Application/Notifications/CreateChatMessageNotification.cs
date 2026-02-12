@@ -6,13 +6,11 @@ using MediatR;
 
 namespace Application.Notifications
 {
-    public record CreateChatMessageNotification : INotification
-    {
-        public Guid ChatMessageId { get; set; }
-        public string MessageText { get; set; }
-        public DateTime SentDate { get; set; }
-
-        public Guid UserId { get; set; }
-        public Guid ChatOwnerId { get; set; }
-    }
+    public record CreateChatMessageNotification(
+        Guid ChatMessageId,
+        string MessageText,
+        DateTime SentDate,
+        Guid UserId,
+        Guid ChatOwnerId
+    ) : INotification;
 }

@@ -11,7 +11,7 @@ using Persistence;
 
 namespace Persistence.Migrations
 {
-    [DbContext(typeof(CurrentMessagesNetContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20220804221557_M2_AddDbSetUserChat")]
     partial class M2_AddDbSetUserChat
     {

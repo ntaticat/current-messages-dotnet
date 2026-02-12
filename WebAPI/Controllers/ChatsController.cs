@@ -1,8 +1,13 @@
-using Application.Commands;
-using Application.Queries;
-using Domain.Models;
+using Application.Commands.Chat;
+using Application.Commands.ChatParticipant;
+using Application.Dtos.Chat;
+using Application.Dtos.ChatMessage;
+using Application.Queries.Chat;
+using Application.Queries.ChatMessage;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebAPI.Contracts.Chat;
 
 namespace WebAPI.Controllers;
 
@@ -17,21 +22,40 @@ public class ChatsController : ControllerBase
         _mediator = mediator;
     }
     
-    [HttpGet]
-    public async Task<ActionResult<List<Chat>>> GetChats(Guid? user = null)
+    [Authorize]
+    [HttpGet()]
+    public async Task<ActionResult<List<ChatDto>>> GetChatsByUserId()
     {
-        return await _mediator.Send(new GetChatsQuery.ChatsQuery { UserId = user });
+        return await _mediator.Send(new GetMyChats.Query());
     }
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Chat>> GetChat(Guid id)
+    
+    [Authorize]
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ChatDto>> GetChat(Guid id)
     {
-        return await _mediator.Send(new GetChatQuery.ChatQuery { ChatId = id });
+        return await _mediator.Send(new GetChat.Query(id));
     }
-
+    
+    [Authorize]
+    [HttpGet("{id:guid}/messages")]
+    public async Task<List<ChatMessageDto>> GetChatMessages(Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+    {
+        return await _mediator.Send(new GetChatMessages.Query(id, page, pageSize));
+    }
+    
+    [Authorize]
     [HttpPost]
-    public async Task<ActionResult<Unit>> PostChat([FromBody] CreateChatCommand.ChatInfoCommand data)
+    public async Task<ActionResult<Unit>> PostChat([FromBody] CreateChatRequest request)
     {
-        return await _mediator.Send(data);
+        var command = new CreateChat.Command(request.name);
+        return await _mediator.Send(command);
+    }
+    
+    [Authorize]
+    [HttpPost("{id:guid}/participants")]
+    public async Task<ActionResult<Unit>> PostChatParticipant(Guid id, [FromBody] AddChatParticipantRequest request)
+    {
+        var command = new AddChatParticipant.Command(id, request.guestId);
+        return await _mediator.Send(command);
     }
 }

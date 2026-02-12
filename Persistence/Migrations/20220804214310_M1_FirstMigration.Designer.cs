@@ -11,7 +11,7 @@ using Persistence;
 
 namespace Persistence.Migrations
 {
-    [DbContext(typeof(CurrentMessagesNetContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20220804214310_M1_FirstMigration")]
     partial class M1_FirstMigration
     {

@@ -2,12 +2,26 @@ namespace Domain.Models;
 
 public class ChatMessage
 {
-    public Guid ChatMessageId { get; set; }
-    public string MessageText { get; set; }
-    public DateTime SentDate { get; set; }
+    public Guid ChatMessageId { get; private set; }
+    public string Text { get; private set; }
+    public DateTime SentAt { get; private set; }
 
-    public Guid UserId { get; set; }
-    public User User { get; set; }
-    public Guid ChatOwnerId { get; set; }
-    public Chat ChatOwner { get; set; }
+    public Guid SenderId { get; private set; }
+    public User Sender { get; private set; }
+    public Guid ChatId { get; private set; }
+    public Chat Chat { get; private set; }
+    
+    protected ChatMessage() { }
+    
+    public ChatMessage(Guid chatId, Guid senderId, string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            throw new ArgumentException("Text cannot be empty");
+        
+        ChatMessageId = Guid.NewGuid();
+        ChatId = chatId;
+        SenderId = senderId;
+        Text = text;
+        SentAt = DateTime.UtcNow;
+    }
 }

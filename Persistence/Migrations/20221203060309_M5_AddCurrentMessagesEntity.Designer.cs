@@ -11,7 +11,7 @@ using Persistence;
 
 namespace Persistence.Migrations
 {
-    [DbContext(typeof(CurrentMessagesNetContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20221203060309_M5_AddCurrentMessagesEntity")]
     partial class M5_AddCurrentMessagesEntity
     {

@@ -11,7 +11,7 @@ using Persistence;
 
 namespace Persistence.Migrations
 {
-    [DbContext(typeof(CurrentMessagesNetContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20220804222958_M3_RenameDbSetUserChat")]
     partial class M3_RenameDbSetUserChat
     {
