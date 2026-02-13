@@ -20,10 +20,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Queries\User\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Reference Include="AutoMapper">
         <HintPath>..\..\..\.nuget\packages\automapper\12.0.1\lib\netstandard2.1\AutoMapper.dll</HintPath>
       </Reference>
