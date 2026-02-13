@@ -10,8 +10,6 @@ public class ChatHub : Hub
             Context.ConnectionId,
             chatId.ToString()
         );
-
-        Console.WriteLine($"Cliente {Context.ConnectionId} unido al grupo {chatId}");
     }
 
     public async Task LeaveChat(Guid chatId)

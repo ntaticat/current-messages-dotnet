@@ -16,14 +16,8 @@ namespace WebAPI.NotificationHandlers
 
         public async Task Handle(CreateChatMessageNotification notification, CancellationToken cancellationToken)
         {
-            await _hubContext.Clients.Group(notification.ChatOwnerId.ToString())
-            .SendAsync("MessageReceived", new
-            {
-                notification.ChatMessageId,
-                notification.UserId,
-                notification.MessageText,
-                notification.SentDate
-            }, cancellationToken);
+            await _hubContext.Clients.Group(notification.ChatId.ToString())
+            .SendAsync("ReceiveMessage", notification.ChatMessage, cancellationToken);
         }
     }
 }

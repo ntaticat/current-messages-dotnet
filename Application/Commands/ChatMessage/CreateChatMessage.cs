@@ -1,4 +1,7 @@
 using Application.Common.Interfaces;
+using Application.Dtos.ChatMessage;
+using Application.Notifications;
+using AutoMapper;
 using MediatR;
 
 namespace Application.Commands.ChatMessage;
@@ -11,11 +14,15 @@ public class CreateChatMessage
     {
         private readonly IApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IMediator _mediator;
+        private readonly IMapper _mapper;
 
-        public Handler(IApplicationDbContext context, ICurrentUserService currentUserService)
+        public Handler(IApplicationDbContext context, ICurrentUserService currentUserService, IMediator mediator, IMapper mapper)
         {
             _context = context;
             _currentUserService = currentUserService;
+            _mediator = mediator;
+            _mapper = mapper;
         }
         
         public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
@@ -39,6 +46,9 @@ public class CreateChatMessage
 
             if (result <= 0)
                 throw new Exception("No se pudo crear el chatmessage");
+            
+            var chatMessageDto = _mapper.Map<ChatMessageDto>(chatMessage);
+            await _mediator.Publish(new CreateChatMessageNotification(chatMessageDto, request.chatId), cancellationToken);
             
             return Unit.Value;
         }

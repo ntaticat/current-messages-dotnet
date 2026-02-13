@@ -66,7 +66,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddMediatR(typeof(CreateChat.Handler));
+builder.Services.AddMediatR(typeof(CreateChat.Command).Assembly, typeof(Program).Assembly);
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddHttpContextAccessor();
