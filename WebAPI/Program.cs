@@ -5,6 +5,7 @@ using Application.Commands.Chat;
 using Application.Common.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -123,6 +124,9 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -150,6 +154,12 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "";
     });
 }
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                       ForwardedHeaders.XForwardedProto
+});
 
 app.UseHttpsRedirection();
 
