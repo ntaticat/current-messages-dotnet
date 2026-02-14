@@ -19,10 +19,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(
-    opt => opt.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )     
+    opt => opt.UseNpgsql(connectionString, npgsqlOptions => {
+            npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+    })
 );
 
 builder.Services.AddScoped<IApplicationDbContext>(provider => 
@@ -78,19 +80,17 @@ builder.Services.AddControllers().AddJsonOptions(opt =>
 builder.Services.AddSignalR();
 
 const string allowClientPolicy = "_allow_frontend_angular";
+
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() 
+                     ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: allowClientPolicy, policy =>
-    {       
-        policy.WithOrigins("https://localhost:4200")
+    {
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    
-        policy.WithOrigins("http://localhost:4200")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowAnyMethod();
     });
 });
 
@@ -151,7 +151,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseCors(allowClientPolicy);
 

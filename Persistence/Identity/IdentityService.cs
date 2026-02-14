@@ -4,6 +4,7 @@ using System.Text;
 using Application.Common.Interfaces;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -27,27 +28,41 @@ public class IdentityService : IIdentityService
         if (await _userManager.FindByEmailAsync(email) != null)
             throw new Exception("El email ya está registrado");
 
-        await using var transaction = await _context.Database.BeginTransactionAsync();
         
-        var identityUser = new ApplicationUser
+        var strategy = _context.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
         {
-            UserName = email,
-            Email = email
-        };
-        
-        var result = await _userManager.CreateAsync(identityUser, password);
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-        if (!result.Succeeded)
-            throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+            try
+            {
+                var identityUser = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email
+                };
         
-        var domainUser = new User(identityUser.Id, fullName);
-        
-        await _context.Users.AddAsync(domainUser);
-        await _context.SaveChangesAsync();
+                var result = await _userManager.CreateAsync(identityUser, password);
 
-        await transaction.CommitAsync();
+                if (!result.Succeeded)
+                    throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
         
-        return identityUser.Id;
+                var domainUser = new User(identityUser.Id, fullName);
+        
+                await _context.Users.AddAsync(domainUser);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return identityUser.Id;
+            }
+            catch (Exception e)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
+
+        
     }
 
     public async Task<string> LoginAsync(string email, string password)

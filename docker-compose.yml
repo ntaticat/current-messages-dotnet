@@ -5,28 +5,33 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      AllowedOrigins__0: ${ALLOWED_ORIGINS}
+      Jwt__Key: ${JWT_KEY}
       ConnectionStrings__DefaultConnection: >
-        Server=db;
-        Database=dbCurrentMessagesNet;
-        User Id=sa;
-        Password=${SQLSERVER_PASSWORD};
-        TrustServerCertificate=True
+        Host=db;
+        Database=${POSTGRES_DB};
+        Username=${POSTGRES_USER};
+        Password=${POSTGRES_PASSWORD}
 
   db:
     user: '0:0'
-    image: mcr.microsoft.com/mssql/server:2019-CU14-ubuntu-20.04
-    container_name: sqlserver2019
+    image: postgres:15-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    container_name: postgres15
     ports:
-      - "1433:1433"
-    environment:
-      ACCEPT_EULA: Y
-      SA_PASSWORD: ${SQLSERVER_PASSWORD}
-      MSSQL_PID: Express
+      - "5432:5432"
+    env_file:
+      .env
     volumes:
-      - sqlserver-data:/var/opt/mssql
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  sqlserver-data:
+  postgres_data:
