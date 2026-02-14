@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Dtos.User;
 using AutoMapper;
@@ -29,9 +30,7 @@ public class GetUserProfile
             var userId = _currentUserService.UserId;
 
             if (userId is null)
-            {
-                throw new UnauthorizedAccessException("User not authenticated");
-            }
+                throw new UnauthorizedException("Usuario no autenticado");
 
             var user = await _context.Users
                 .AsNoTracking()
@@ -40,9 +39,7 @@ public class GetUserProfile
                 .FirstOrDefaultAsync(cancellationToken);
             
             if (user == null)
-            {
-                throw new Exception("User no encontrado");
-            }
+                throw new NotFoundException("Usuario no encontrado");
             
             return user;
         }

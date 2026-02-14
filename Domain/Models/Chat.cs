@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Domain.Exceptions;
 
 namespace Domain.Models;
 
@@ -31,13 +32,13 @@ public class Chat
             .FirstOrDefault(p => p.UserId == requesterId);
         
         if (requester is null)
-            throw new InvalidOperationException("Requester not in chat");
+            throw new BusinessRuleException("El solicitante no está en el chat");
 
         if (requester.Role != ChatRole.Admin && requester.Role != ChatRole.Owner)
-            throw new UnauthorizedAccessException("You cannot add participant to the chat");
+            throw new BusinessRuleException("El solicitante no puede añadir participantes al chat");
 
         if (_participants.Any(p => p.UserId == newUserId))
-            return;
+            throw new BusinessRuleException("El participante ya está en el chat");
         
         _participants.Add(new ChatParticipant(ChatId, newUserId, ChatRole.Member));
     }

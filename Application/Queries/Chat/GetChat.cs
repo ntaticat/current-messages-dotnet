@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Dtos.Chat;
 using Application.Dtos.User;
@@ -30,9 +31,7 @@ public class GetChat
             var userId = _currentUserService.UserId;
 
             if (userId is null)
-            {
-                throw new UnauthorizedAccessException("User not authenticated");
-            }
+                throw new UnauthorizedException("Usuario no autenticado");
             
             var chat = await _context.Chats
                 .AsNoTracking()
@@ -42,9 +41,7 @@ public class GetChat
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (chat == null)
-            {
-                throw new Exception("Chat no encontrado");
-            }
+                throw new NotFoundException("Chat no encontrado");
             
             return chat;
         }

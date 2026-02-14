@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Dtos.Chat;
 using AutoMapper;
@@ -15,21 +16,23 @@ public class GetChats
     {
         private readonly IApplicationDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
-        public Handler(IApplicationDbContext context, IMapper mapper)
+        public Handler(IApplicationDbContext context, IMapper mapper, ICurrentUserService currentUserService)
         {
             _context = context;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<List<ChatDto>> Handle(Query request, CancellationToken cancellationToken)
         {
-            var chats = await _context.Chats.ProjectTo<ChatDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
+            var userId = _currentUserService.UserId;
+
+            if (userId is null)
+                throw new UnauthorizedException("Usuario no autenticado");
             
-            if (chats == null)
-            {
-                throw new Exception("chats no encontrados");
-            }
+            var chats = await _context.Chats.ProjectTo<ChatDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
             
             return chats;
         }

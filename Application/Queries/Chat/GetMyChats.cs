@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Dtos.Chat;
 using AutoMapper;
@@ -29,9 +30,7 @@ public class GetMyChats
             var userId = _currentUserService.UserId;
 
             if (userId is null)
-            {
-                throw new UnauthorizedAccessException("User not authenticated");
-            }
+                throw new UnauthorizedException("Usuario no autenticado");
             
             var chats = await _context.Chats
                 .AsNoTracking()

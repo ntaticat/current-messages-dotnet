@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,7 @@ public class AddChatParticipant
             
             if (userId is null)
             {
-                throw new Exception("User not found");
+                throw new UnauthorizedException("Usuario no autenticado");
             }
             
             var chat = await _context.Chats
@@ -33,11 +34,14 @@ public class AddChatParticipant
                 .FirstOrDefaultAsync(c => c.ChatId == request.chatId, cancellationToken);
             
             if (chat == null)
-                throw new Exception("Chat not found");
+                throw new NotFoundException("Chat no encontrado");
             
             chat.AddParticipant(userId.Value, request.guestId);
             
-            await _context.SaveChangesAsync(cancellationToken);
+            var result = await _context.SaveChangesAsync(cancellationToken);
+            
+            if (result <= 0)
+                throw new OperationFailedException("No se pudo agregar al participante al chat");
             
             return Unit.Value;
         }

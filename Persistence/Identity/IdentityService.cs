@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Domain.Models;
 using Microsoft.AspNetCore.Identity;
@@ -26,7 +27,7 @@ public class IdentityService : IIdentityService
     public async Task<Guid> CreateUserAsync(string fullName, string email, string password)
     {
         if (await _userManager.FindByEmailAsync(email) != null)
-            throw new Exception("El email ya está registrado");
+            throw new ConflictException("El email ya está registrado");
 
         
         var strategy = _context.Database.CreateExecutionStrategy();
@@ -43,15 +44,18 @@ public class IdentityService : IIdentityService
                     Email = email
                 };
         
-                var result = await _userManager.CreateAsync(identityUser, password);
+                var identityUserResult = await _userManager.CreateAsync(identityUser, password);
 
-                if (!result.Succeeded)
-                    throw new Exception(string.Join(",", result.Errors.Select(e => e.Description)));
+                if (!identityUserResult.Succeeded)
+                    throw new OperationFailedException("No se pudo registrar el usuario");
         
                 var domainUser = new User(identityUser.Id, fullName);
-        
                 await _context.Users.AddAsync(domainUser);
-                await _context.SaveChangesAsync();
+                var domainUserResult = await _context.SaveChangesAsync();
+                
+                if (domainUserResult <= 0)
+                    throw new OperationFailedException("No se pudo registrar el usuario");
+                
                 await transaction.CommitAsync();
                 return identityUser.Id;
             }
@@ -61,8 +65,6 @@ public class IdentityService : IIdentityService
                 throw;
             }
         });
-
-        
     }
 
     public async Task<string> LoginAsync(string email, string password)
@@ -71,14 +73,14 @@ public class IdentityService : IIdentityService
 
         if (user == null)
         {
-            throw new UnauthorizedAccessException("Credenciales invalidas");
+            throw new UnauthorizedException("Credenciales invalidas");
         }
         
         var validPassword = await _userManager.CheckPasswordAsync(user, password);
 
         if (!validPassword)
         {
-            throw new UnauthorizedAccessException("Credenciales invalidas");
+            throw new UnauthorizedException("Credenciales invalidas");
         }
 
         var claims = new List<Claim>

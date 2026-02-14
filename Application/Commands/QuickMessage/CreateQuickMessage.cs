@@ -1,5 +1,5 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
-using Domain.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,7 +25,7 @@ public class CreateQuickMessage
             var userId = _currentUserService.UserId;
 
             if (userId is null)
-                throw new Exception("User not found");
+                throw new UnauthorizedException("Usuario no autenticado");
             
             var chatMessage = await _context.ChatMessages
                 .Include(m => m.Chat)
@@ -33,13 +33,13 @@ public class CreateQuickMessage
                 .FirstOrDefaultAsync(m => m.ChatMessageId == request.ChatMessageId, cancellationToken);
 
             if (chatMessage == null)
-                throw new Exception("No se encontró el mensaje");
+                throw new NotFoundException("No se encontró el chatmessage");
             
             var isParticipant = chatMessage.Chat.Participants
                 .Any(p => p.UserId == userId);
             
             if (!isParticipant)
-                throw new UnauthorizedAccessException("You are not part of this chat");
+                throw new ForbiddenException("Usuario no es parte del chat con el chatmessage");
 
             var quickMessage = new Domain.Models.QuickMessage(
                 userId.Value,
@@ -50,7 +50,7 @@ public class CreateQuickMessage
             var result = await _context.SaveChangesAsync(cancellationToken);
             
             if (result <= 0)
-                throw new Exception("No se pudo crear el mensaje frecuente");
+                throw new OperationFailedException("No se pudo crear el quickmessage");
             
             return Unit.Value;
         }

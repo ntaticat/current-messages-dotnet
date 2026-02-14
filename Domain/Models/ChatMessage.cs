@@ -1,3 +1,5 @@
+using Domain.Exceptions;
+
 namespace Domain.Models;
 
 public class ChatMessage
@@ -16,7 +18,7 @@ public class ChatMessage
     public ChatMessage(Guid chatId, Guid senderId, string text)
     {
         if (string.IsNullOrWhiteSpace(text))
-            throw new ArgumentException("Text cannot be empty");
+            throw new BusinessRuleException("El texto del mensaje no puede estar vacío");
         
         ChatMessageId = Guid.NewGuid();
         ChatId = chatId;

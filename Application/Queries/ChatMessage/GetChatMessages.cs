@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Dtos.ChatMessage;
 using AutoMapper;
@@ -29,7 +30,7 @@ public class GetChatMessages
             var userId = _currentUserService.UserId;
 
             if (userId is null)
-                throw new UnauthorizedAccessException("User not authenticated");
+                throw new UnauthorizedException("Usuario no autenticado");
             
             var isParticipant = await _context.ChatParticipants
                 .AsNoTracking()
@@ -39,7 +40,7 @@ public class GetChatMessages
                     cancellationToken);
             
             if (!isParticipant)
-                throw new UnauthorizedAccessException("You are not part of this chat");
+                throw new ForbiddenException("Usuario no es miembro del chat");
             
             var messages = await _context.ChatMessages
                 .AsNoTracking()

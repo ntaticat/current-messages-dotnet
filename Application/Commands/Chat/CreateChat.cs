@@ -1,3 +1,4 @@
+using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using MediatR;
 
@@ -24,7 +25,7 @@ public class CreateChat
 
             if (userId == null)
             {
-                throw new Exception("User not found");
+                throw new UnauthorizedException("Usuario no autenticado");
             }
             
             var chat = new Domain.Models.Chat(userId.Value, request.name);
@@ -34,7 +35,7 @@ public class CreateChat
             var result = await _context.SaveChangesAsync(cancellationToken);
             
             if (result <= 0)
-                throw new Exception("No se pudo crear el chat");
+                throw new OperationFailedException("No se pudo crear el chat");
             
             return Unit.Value;
         }

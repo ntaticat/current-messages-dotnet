@@ -13,6 +13,7 @@ using Microsoft.OpenApi.Models;
 using Persistence;
 using Persistence.Identity;
 using WebAPI.Hubs;
+using WebAPI.Middleware;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
@@ -128,6 +129,8 @@ var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {

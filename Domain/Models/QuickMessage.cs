@@ -1,3 +1,5 @@
+using Domain.Exceptions;
+
 namespace Domain.Models;
 
 public class QuickMessage
@@ -12,7 +14,7 @@ public class QuickMessage
     public QuickMessage(Guid userId, string text)
     {
         if (string.IsNullOrWhiteSpace(text))
-            throw new ArgumentException("Text cannot be empty");
+            throw new BusinessRuleException("El texto del mensaje rápido no puede estar vacío.");
         
         QuickMessageId = Guid.NewGuid();
         UserId = userId;
