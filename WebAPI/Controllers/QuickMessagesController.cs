@@ -19,18 +19,18 @@ public class QuickMessagesController : ControllerBase
         _mediator = mediator;
     }
     
-    [Authorize]
-    [HttpGet]
-    public async Task<ActionResult<List<QuickMessageDto>>> GetQuickMessagesByUser()
-    {
-        return await _mediator.Send(new GetMyQuickMessages.Query());
-    }
-    
-    [Authorize]
-    [HttpPost]
-    public async Task<ActionResult<Unit>> PostQuickMessage([FromBody] CreateQuickMessageRequest request)
-    {
-        var command = new CreateQuickMessage.Command(request.ChatMessageId);
-        return await _mediator.Send(command);
-    }
+    // [Authorize]
+    // [HttpGet]
+    // public async Task<ActionResult<List<QuickMessageDto>>> GetQuickMessagesByUser()
+    // {
+    //     return await _mediator.Send(new GetMyQuickMessages.Query());
+    // }
+    //
+    // [Authorize]
+    // [HttpPost]
+    // public async Task<ActionResult<Unit>> PostQuickMessage([FromBody] CreateQuickMessageRequest request)
+    // {
+    //     var command = new CreateQuickMessage.Command(request.ChatMessageId);
+    //     return await _mediator.Send(command);
+    // }
 }

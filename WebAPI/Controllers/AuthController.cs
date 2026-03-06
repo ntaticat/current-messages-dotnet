@@ -19,11 +19,11 @@ public class AuthController : ControllerBase
     
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<Guid> Register(RegisterUserRequest request)
+    public async Task<IActionResult> Register(RegisterUserRequest request)
     {
         var command = new RegisterUser.Command(request.FullName, request.Email, request.Password);
-        var userId = await _mediator.Send(command);
-        return userId;
+        var token = await _mediator.Send(command);
+        return Ok(new { token });
     }
     
     [AllowAnonymous]

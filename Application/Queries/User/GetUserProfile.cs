@@ -15,13 +15,11 @@ public class GetUserProfile
     public class Handler : IRequestHandler<Query, UserDto>
     {
         private readonly IApplicationDbContext _context;
-        private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
 
-        public Handler(IApplicationDbContext context, IMapper mapper, ICurrentUserService currentUserService)
+        public Handler(IApplicationDbContext context, ICurrentUserService currentUserService)
         {
             _context = context;
-            _mapper = mapper;
             _currentUserService = currentUserService;
         }
         
@@ -35,7 +33,14 @@ public class GetUserProfile
             var user = await _context.Users
                 .AsNoTracking()
                 .Where(u => u.Id == userId)
-                .ProjectTo<UserDto>(_mapper.ConfigurationProvider)
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    FullName = u.FullName,
+                    PublicKey =  u.PublicKey,
+                    EncryptedPrivateKey = u.EncryptedPrivateKey,
+                    HasKeys = u.PublicKey != null
+                })
                 .FirstOrDefaultAsync(cancellationToken);
             
             if (user == null)

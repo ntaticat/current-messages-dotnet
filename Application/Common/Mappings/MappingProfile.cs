@@ -11,10 +11,6 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<Chat, ChatDto>()
-            .ForMember(dest => dest.Users, opt => opt.MapFrom(src => 
-                src.Participants.Select(p => p.User)));
-        CreateMap<User, UserDto>();
         CreateMap<ChatMessage, ChatMessageDto>();
         CreateMap<QuickMessage, QuickMessageDto>();
     }

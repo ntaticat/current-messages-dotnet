@@ -3,11 +3,14 @@ using Application.Common.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.Commands.Chat;
+namespace Application.Commands.User;
 
-public class CreateChat
+public class RegisterUserKeys
 {
-    public record Command(string Name, string EncryptedRoomKey) : IRequest;
+    public record Command(
+        string PublicKey,
+        string EncryptedPrivateKey
+    ) : IRequest;
 
     public class Handler : IRequestHandler<Command>
     {
@@ -30,22 +33,20 @@ public class CreateChat
             }
             
             var user = await _context.Users
-                           .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
-                       ?? throw new NotFoundException("Usuario no encontrado");
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken)
+                ?? throw new NotFoundException("Usuario no encontrado");
             
-            if (!user.HasKeys)
-                throw new ValidationException("Debes registrar tus claves antes de crear un chat");
+            if(user.HasKeys)
+                throw new ConflictException("El usuario ya tiene claves registradas");
             
-            var chat = new Domain.Models.Chat(userId.Value, request.Name, request.EncryptedRoomKey);
-            
-            await _context.Chats.AddAsync(chat, cancellationToken);
-            
-            var result = await _context.SaveChangesAsync(cancellationToken);
+            user.RegisterKeys(request.PublicKey, request.EncryptedPrivateKey);
+            var result = await  _context.SaveChangesAsync(cancellationToken);
             
             if (result <= 0)
                 throw new OperationFailedException("No se pudo crear el chat");
             
             return Unit.Value;
+            
         }
     }
 }

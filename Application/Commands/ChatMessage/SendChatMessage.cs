@@ -8,9 +8,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Commands.ChatMessage;
 
-public class CreateChatMessage
+public class SendChatMessage
 {
-    public record Command(Guid chatId, string text) : IRequest;
+    public record Command(Guid ChatId, string EncryptedText, string Iv) : IRequest;
 
     public class Handler : IRequestHandler<Command>
     {
@@ -38,7 +38,7 @@ public class CreateChatMessage
             
             var chat = await _context.Chats
                 .Include(c => c.Participants)
-                .FirstOrDefaultAsync(c => c.ChatId == request.chatId, cancellationToken);
+                .FirstOrDefaultAsync(c => c.Id == request.ChatId, cancellationToken);
             
             if (chat == null)
                 throw new NotFoundException("Chat no encontrado");
@@ -50,9 +50,10 @@ public class CreateChatMessage
                 throw new ForbiddenException("Usuario no es parte del chat");
             
             var chatMessage = new Domain.Models.ChatMessage(
-                request.chatId, 
+                request.ChatId, 
                 userId.Value,
-                request.text
+                request.EncryptedText,
+                request.Iv
             );
 
             await _context.ChatMessages.AddAsync(chatMessage, cancellationToken);
@@ -63,7 +64,7 @@ public class CreateChatMessage
                 throw new OperationFailedException("No se pudo crear el chatmessage");
             
             var chatMessageDto = _mapper.Map<ChatMessageDto>(chatMessage);
-            await _mediator.Publish(new CreateChatMessageNotification(chatMessageDto, request.chatId), cancellationToken);
+            await _mediator.Publish(new CreateChatMessageNotification(chatMessageDto, request.ChatId), cancellationToken);
             
             return Unit.Value;
         }

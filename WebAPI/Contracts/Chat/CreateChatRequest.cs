@@ -1,5 +1,6 @@
 namespace WebAPI.Contracts.Chat;
 
 public record CreateChatRequest(
-    string name
+    string name,
+    string encryptedRoomKey
 );

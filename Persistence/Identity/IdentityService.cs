@@ -24,7 +24,7 @@ public class IdentityService : IIdentityService
         _configuration = configuration;
     }
     
-    public async Task<Guid> CreateUserAsync(string fullName, string email, string password)
+    public async Task<string> CreateUserAsync(string fullName, string email, string password)
     {
         if (await _userManager.FindByEmailAsync(email) != null)
             throw new ConflictException("El email ya está registrado");
@@ -57,7 +57,7 @@ public class IdentityService : IIdentityService
                     throw new OperationFailedException("No se pudo registrar el usuario");
                 
                 await transaction.CommitAsync();
-                return identityUser.Id;
+                return await CreateTokenAsync(identityUser);
             }
             catch (Exception e)
             {
@@ -83,6 +83,11 @@ public class IdentityService : IIdentityService
             throw new UnauthorizedException("Credenciales invalidas");
         }
 
+        return await CreateTokenAsync(user);
+    }
+
+    private async Task<string> CreateTokenAsync(ApplicationUser user)
+    {
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()), // Usa 'sub' en lugar de NameIdentifier
@@ -104,7 +109,7 @@ public class IdentityService : IIdentityService
             claims: claims,
             expires: expires,
             signingCredentials: creds
-            );
+        );
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

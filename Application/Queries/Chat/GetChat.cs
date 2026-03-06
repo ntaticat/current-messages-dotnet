@@ -1,6 +1,7 @@
 using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Dtos.Chat;
+using Application.Dtos.ChatParticipant;
 using Application.Dtos.User;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
@@ -16,13 +17,11 @@ public class GetChat
     public class Handler : IRequestHandler<Query, ChatDto>
     {
         private readonly IApplicationDbContext _context;
-        private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
 
-        public Handler(IApplicationDbContext context, IMapper mapper, ICurrentUserService currentUserService)
+        public Handler(IApplicationDbContext context, ICurrentUserService currentUserService)
         {
             _context = context;
-            _mapper = mapper;
             _currentUserService = currentUserService;
         }
 
@@ -35,9 +34,25 @@ public class GetChat
             
             var chat = await _context.Chats
                 .AsNoTracking()
-                .Where(chat => chat.ChatId == request.ChatId &&
+                .Where(chat => chat.Id == request.ChatId &&
                                chat.Participants.Any(p => p.UserId == userId.Value))
-                .ProjectTo<ChatDto>(_mapper.ConfigurationProvider)
+                .Select(c => new ChatDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    CreatedAt = c.CreatedAt,
+                    HasRoomKey = c.KeyDistributions.Any(k => k.UserId == userId.Value),
+                    Participants = c.Participants
+                        .Select(p => new ChatParticipantDto
+                        {
+                            Id = p.User.Id,
+                            FullName = p.User.FullName,
+                            HasKeys = p.User.HasKeys,
+                            Role = p.Role.ToString(),
+                            JoinedAt = p.JoinedAt,
+                            LastReadAt = p.LastReadAt
+                        }).ToList()
+                })
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (chat == null)

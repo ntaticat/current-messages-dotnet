@@ -5,9 +5,9 @@ namespace Application.Commands.User;
 
 public class RegisterUser
 {
-    public record Command(string FullName, string Email, string Password) : IRequest<Guid>;
+    public record Command(string FullName, string Email, string Password) : IRequest<string>;
 
-    public class Handler : IRequestHandler<Command, Guid>
+    public class Handler : IRequestHandler<Command, string>
     {
         private readonly IIdentityService _identityService;
 
@@ -16,7 +16,7 @@ public class RegisterUser
             _identityService = identityService;
         }
 
-        public async Task<Guid> Handle(Command request, CancellationToken cancellationToken)
+        public async Task<string> Handle(Command request, CancellationToken cancellationToken)
         {
             return await _identityService.CreateUserAsync(request.FullName, request.Email, request.Password);
         }

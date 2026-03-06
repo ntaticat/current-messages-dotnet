@@ -44,10 +44,18 @@ public class ChatsController : ControllerBase
     }
     
     [Authorize]
+    [HttpGet("{id:guid}/my-room-key")]
+    public async Task<IActionResult> GetChatRoomKey(Guid id)
+    {
+        var result = await _mediator.Send(new GetMyRoomKey.Query(id));
+        return Ok(new { roomKey = result });
+    }
+    
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<Unit>> PostChat([FromBody] CreateChatRequest request)
     {
-        var command = new CreateChat.Command(request.name);
+        var command = new CreateChat.Command(request.name, request.encryptedRoomKey);
         return await _mediator.Send(command);
     }
     
@@ -55,7 +63,9 @@ public class ChatsController : ControllerBase
     [HttpPost("{id:guid}/participants")]
     public async Task<ActionResult<Unit>> PostChatParticipant(Guid id, [FromBody] AddChatParticipantRequest request)
     {
-        var command = new AddChatParticipant.Command(id, request.guestId);
+        var command = new AddChatParticipant.Command(id, request.guestId, request.encryptedRoomKeyForGuest);
         return await _mediator.Send(command);
     }
+    
+    
 }

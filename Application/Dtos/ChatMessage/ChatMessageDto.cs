@@ -2,8 +2,9 @@ namespace Application.Dtos.ChatMessage;
 
 public class ChatMessageDto
 {
-    public Guid ChatMessageId { get; set; }
-    public string Text { get; set; }
+    public Guid Id { get; set; }
+    public string EncryptedText { get; set; }
+    public string Iv { get; set; }
     public DateTime SentAt { get; set; }
-    public Guid SenderId { get; set; }
+    public Guid UserId { get; set; }
 }

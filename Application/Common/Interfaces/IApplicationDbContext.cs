@@ -10,5 +10,6 @@ public interface IApplicationDbContext
     public DbSet<User> Users { get; set; }
     public DbSet<QuickMessage> QuickMessages { get; set; }
     public DbSet<ChatParticipant> ChatParticipants { get; set; }
+    public DbSet<ChatKeyDistribution> ChatKeyDistributions { get; set; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

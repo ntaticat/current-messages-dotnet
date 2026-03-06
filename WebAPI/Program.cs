@@ -24,9 +24,19 @@ var jwtSettings = builder.Configuration.GetSection("Jwt");
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(
-    opt => opt.UseNpgsql(connectionString, npgsqlOptions => {
-            npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
-    })
+    opt =>
+    {
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            opt.UseNpgsql("Host=localhost;Database=designtime;Username=postgres;Password=postgres");
+        }
+        else
+        {
+            opt.UseNpgsql(connectionString, npgsqlOptions => {
+                npgsqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(10), null);
+            });   
+        }
+    }
 );
 
 builder.Services.AddScoped<IApplicationDbContext>(provider => 

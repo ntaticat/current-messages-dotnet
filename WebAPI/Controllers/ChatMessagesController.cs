@@ -20,9 +20,9 @@ public class ChatMessagesController : ControllerBase
     
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<Unit>> PostChatMessage([FromBody] CreateChatMessageRequest request)
+    public async Task<ActionResult<Unit>> PostChatMessage([FromBody] SendChatMessageRequest request)
     {
-        var command = new CreateChatMessage.Command(request.ChatId, request.Message);
+        var command = new SendChatMessage.Command(request.ChatId, request.encryptedText, request.iv);
         return await _mediator.Send(command);
     }
 }

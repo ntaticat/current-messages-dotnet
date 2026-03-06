@@ -30,7 +30,7 @@ public class CreateQuickMessage
             var chatMessage = await _context.ChatMessages
                 .Include(m => m.Chat)
                 .ThenInclude(c => c.Participants)
-                .FirstOrDefaultAsync(m => m.ChatMessageId == request.ChatMessageId, cancellationToken);
+                .FirstOrDefaultAsync(m => m.Id == request.ChatMessageId, cancellationToken);
 
             if (chatMessage == null)
                 throw new NotFoundException("No se encontró el chatmessage");
@@ -43,7 +43,7 @@ public class CreateQuickMessage
 
             var quickMessage = new Domain.Models.QuickMessage(
                 userId.Value,
-                chatMessage.Text
+                chatMessage.EncryptedText
             );
 
             await _context.QuickMessages.AddAsync(quickMessage, cancellationToken);
